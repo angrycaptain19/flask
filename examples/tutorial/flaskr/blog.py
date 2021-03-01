@@ -63,7 +63,6 @@ def create():
     """Create a new post for the current user."""
     if request.method == "POST":
         title = request.form["title"]
-        body = request.form["body"]
         error = None
 
         if not title:
@@ -73,6 +72,7 @@ def create():
             flash(error)
         else:
             db = get_db()
+            body = request.form["body"]
             db.execute(
                 "INSERT INTO post (title, body, author_id) VALUES (?, ?, ?)",
                 (title, body, g.user["id"]),
@@ -91,7 +91,6 @@ def update(id):
 
     if request.method == "POST":
         title = request.form["title"]
-        body = request.form["body"]
         error = None
 
         if not title:
@@ -101,6 +100,7 @@ def update(id):
             flash(error)
         else:
             db = get_db()
+            body = request.form["body"]
             db.execute(
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )

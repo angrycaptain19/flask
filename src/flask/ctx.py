@@ -372,8 +372,8 @@ class RequestContext:
             session_interface = self.app.session_interface
             self.session = session_interface.open_session(self.app, self.request)
 
-            if self.session is None:
-                self.session = session_interface.make_null_session(self.app)
+        if self.session is None:
+            self.session = session_interface.make_null_session(self.app)
 
     def pop(self, exc=_sentinel):
         """Pops the request context and unbinds it by doing that.  This will

@@ -26,9 +26,9 @@ _missing = object()
 # what separators does this operating system provide that are not a slash?
 # this is used by the send_from_directory function to ensure that nobody is
 # able to access files from outside the filesystem.
-_os_alt_seps = list(
+_os_alt_seps = [
     sep for sep in [os.path.sep, os.path.altsep] if sep not in (None, "/")
-)
+]
 
 
 def get_env():
@@ -775,27 +775,26 @@ def _find_package_path(root_mod_name):
     if loader is None or root_mod_name == "__main__":
         # import name is not found, or interactive/main module
         return os.getcwd()
+    if hasattr(loader, "get_filename"):
+        filename = loader.get_filename(root_mod_name)
+    elif hasattr(loader, "archive"):
+        # zipimporter's loader.archive points to the .egg or .zip
+        # archive filename is dropped in call to dirname below.
+        filename = loader.archive
     else:
-        if hasattr(loader, "get_filename"):
-            filename = loader.get_filename(root_mod_name)
-        elif hasattr(loader, "archive"):
-            # zipimporter's loader.archive points to the .egg or .zip
-            # archive filename is dropped in call to dirname below.
-            filename = loader.archive
-        else:
-            # At least one loader is missing both get_filename and archive:
-            # Google App Engine's HardenedModulesHook
-            #
-            # Fall back to imports.
-            __import__(root_mod_name)
-            filename = sys.modules[root_mod_name].__file__
-        package_path = os.path.abspath(os.path.dirname(filename))
+        # At least one loader is missing both get_filename and archive:
+        # Google App Engine's HardenedModulesHook
+        #
+        # Fall back to imports.
+        __import__(root_mod_name)
+        filename = sys.modules[root_mod_name].__file__
+    package_path = os.path.abspath(os.path.dirname(filename))
 
-        # In case the root module is a package we need to chop of the
-        # rightmost part. This needs to go through a helper function
-        # because of namespace packages.
-        if _matching_loader_thinks_module_is_package(loader, root_mod_name):
-            package_path = os.path.dirname(package_path)
+    # In case the root module is a package we need to chop of the
+    # rightmost part. This needs to go through a helper function
+    # because of namespace packages.
+    if _matching_loader_thinks_module_is_package(loader, root_mod_name):
+        package_path = os.path.dirname(package_path)
 
     return package_path
 
